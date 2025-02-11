@@ -1,0 +1,94 @@
+const fs = require("fs");
+const readline = require("readline");
+
+const rl = readline.createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
+
+const FILE_PATH = "tasks.json";
+
+// Initialize tasks file if it doesn't exist
+if (!fs.existsSync(FILE_PATH)) {
+  fs.writeFileSync(FILE_PATH, JSON.stringify([]));
+}
+
+// Load tasks from file
+const loadTasks = () => {
+  const data = fs.readFileSync(FILE_PATH);
+  return JSON.parse(data);
+};
+
+// Save tasks to file
+const saveTasks = (tasks) => {
+  fs.writeFileSync(FILE_PATH, JSON.stringify(tasks, null, 2));
+};
+
+// Display menu options
+const showMenu = () => {
+  console.log("\n=== Command-Line To-Do List ===");
+  console.log("1. View tasks");
+  console.log("2. Add task");
+  console.log("3. Delete task");
+  console.log("4. Exit");
+  rl.question("\nChoose an option: ", handleUserChoice);
+};
+
+// Handle user input
+const handleUserChoice = (choice) => {
+  const tasks = loadTasks();
+
+  switch (choice.trim()) {
+    case "1":
+      console.log("\nYour Tasks:");
+      if (tasks.length === 0) {
+        console.log("No tasks found.");
+      } else {
+        tasks.forEach((task, index) => {
+          console.log(`${index + 1}. ${task}`);
+        });
+      }
+      showMenu();
+      break;
+
+    case "2":
+      rl.question("\nEnter the task: ", (task) => {
+        tasks.push(task);
+        saveTasks(tasks);
+        console.log("Task added!");
+        showMenu();
+      });
+      break;
+
+    case "3":
+      if (tasks.length === 0) {
+        console.log("No tasks to delete.");
+        showMenu();
+      } else {
+        rl.question("\nEnter the task number to delete: ", (num) => {
+          const index = parseInt(num) - 1;
+          if (index >= 0 && index < tasks.length) {
+            console.log(`Deleted: "${tasks[index]}"`);
+            tasks.splice(index, 1);
+            saveTasks(tasks);
+          } else {
+            console.log("Invalid task number.");
+          }
+          showMenu();
+        });
+      }
+      break;
+
+    case "4":
+      console.log("Goodbye!");
+      rl.close();
+      break;
+
+    default:
+      console.log("Invalid option. Try again.");
+      showMenu();
+  }
+};
+
+// Start the app
+showMenu();
